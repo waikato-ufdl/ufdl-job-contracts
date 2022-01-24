@@ -36,6 +36,7 @@ setup(
     author='Corey Sterling',
     author_email='csterlin@waikato.ac.nz',
     install_requires=[
+        "ufdl.jobtypes"
     ],
     entry_points={
     }
