@@ -23,7 +23,6 @@ class JobContractParam(ABC):
         return iter(self._dependents)
 
     @abstractmethod
-    @property
     def bound_str(self) -> str:
         """
         Returns a string-representation of the bound of this parameter.
@@ -34,4 +33,4 @@ class JobContractParam(ABC):
         self._dependents.append(dependent)
 
     def __str__(self):
-        return f"{self._name}: {self.bound_str}"
+        return f"{self._name}: {self.bound_str()}"

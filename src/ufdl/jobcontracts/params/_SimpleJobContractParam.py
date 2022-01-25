@@ -18,6 +18,5 @@ class SimpleJobContractParam(JobContractParam):
     def bound(self):
         return self._bound
 
-    @property
     def bound_str(self) -> str:
         return format_type(self._bound)

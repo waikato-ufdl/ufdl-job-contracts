@@ -20,7 +20,6 @@ class DependentJobContractParam(JobContractParam):
         # Check the bound args have at least one degree of freedom
         type_params_expected_base_types = bound.type_params_expected_base_types()
 
-    @property
     def bound_str(self) -> str:
         args = (
             "" if len(self._bound_args) == 0
