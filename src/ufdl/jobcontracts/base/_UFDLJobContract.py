@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Dict, Tuple
 
 from ufdl.jobtypes import AnyUFDLType
-from ufdl.jobtypes.base import UFDLJSONType, UFDLBinaryType
+from ufdl.jobtypes.base import UFDLJSONType, UFDLType
 from ufdl.jobtypes.util import format_type_args_or_params
 
 from ..initialise import name_type_translate
@@ -37,7 +37,7 @@ class UFDLJobContract(ABC):
     def __init__(
             self,
             inputs: Dict[str, Tuple[UFDLJSONType, ...]],
-            outputs: Dict[str, UFDLBinaryType]
+            outputs: Dict[str, UFDLType]
     ):
         # Check the inputs
         for input_name, input_type in inputs.items():
@@ -50,7 +50,7 @@ class UFDLJobContract(ABC):
         for output_name, output_type in outputs.items():
             if not output_name.isidentifier():
                 raise ValueError(f"Output name '{output_name}' is not an identifier")
-            if not isinstance(output_type, UFDLBinaryType):
+            if not isinstance(output_type, UFDLType):
                 raise ValueError(f"Output type for output '{output_name}' is not a binary type ({type(output_type)})")
 
         self._inputs = inputs
