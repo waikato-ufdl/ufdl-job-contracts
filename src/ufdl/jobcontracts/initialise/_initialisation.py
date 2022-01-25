@@ -1,13 +1,9 @@
 import builtins
-from typing import Callable, Dict, List, Optional, Union
-
-from wai.json.raw import RawJSONObject
+from typing import Dict, Optional, Union
 
 from ufdl.jobtypes.error import NotInitialisedException
 
 # Name/type mappings
-from ufdl.jobcontracts.base import UFDLJobContract
-
 NAME_TO_TYPE_MAP: Optional[Dict[str, type]] = None
 TYPE_TO_NAME_MAP: Optional[Dict[type, str]] = None
 
@@ -19,6 +15,7 @@ def initialise_server(
     Initialises the type-systems connection to the server.
     """
     global NAME_TO_TYPE_MAP, TYPE_TO_NAME_MAP
+    from ..base import UFDLJobContract
 
     # Verify and reverse the name/type mapping
     NAME_TO_TYPE_MAP = {}
