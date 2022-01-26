@@ -8,3 +8,12 @@ class JobContractParamName:
 
     def __str__(self):
         return self._name
+
+    def __eq__(self, other):
+        if isinstance(other, JobContractParamName):
+            other = other._name
+
+        return self._name == other
+
+    def __hash__(self):
+        return hash(self._name)
