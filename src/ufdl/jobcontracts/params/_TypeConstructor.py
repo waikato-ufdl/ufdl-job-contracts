@@ -67,6 +67,10 @@ class TypeConstructor:
                     self._dependencies += set(arg.dependencies)
 
     @property
+    def bound_base(self):
+        return self._bound_base
+
+    @property
     def dependencies(self) -> Iterator[JobContractParamName]:
         yield from self._dependencies
 
