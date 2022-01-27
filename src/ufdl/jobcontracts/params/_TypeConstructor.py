@@ -62,7 +62,7 @@ class TypeConstructor:
                 if isinstance(arg, JobContractParamName):
                     self._dependencies.add(arg)
                 elif isinstance(arg, TypeConstructor):
-                    self._dependencies += set(arg.dependencies)
+                    self._dependencies.update(arg.dependencies)
 
     @property
     def bound_base(self):
