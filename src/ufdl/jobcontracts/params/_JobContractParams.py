@@ -115,7 +115,7 @@ class JobContractParams(Iterable[JobContractParam]):
                 dependent_param_name,
                 dependent_param_bound.construct({
                     JobContractParamName(name): bounds[0]
-                    for name, bounds in fixed_bounds
+                    for name, bounds in fixed_bounds.items()
                 }),
                 None
             )
