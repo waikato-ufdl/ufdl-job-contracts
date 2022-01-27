@@ -48,7 +48,7 @@ class TypeConstructor:
                     bound_base_args.append(arg._bound_base)
                 else:
                     bound_base_args.append(arg)
-            self._bound_base = bound(*bound_base_args)
+            self._bound_base = bound(tuple(bound_base_args))
 
         self._bound = bound
         self._args = args
@@ -77,7 +77,7 @@ class TypeConstructor:
             return types[self._bound]
 
         return self._bound(
-            *(
+            tuple(
                 types[arg] if isinstance(arg, JobContractParamName)
                 else arg.construct(types) if isinstance(arg, TypeConstructor)
                 else arg
