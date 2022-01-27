@@ -32,13 +32,13 @@ def format_contract(
         return str(contract)
 
     inputs = ",\n".join(
-        f"\t{input_name}: " + " | ".join(map(format_type, input_types))
-        for input_name, input_types in contract.inputs.items()
+        f"\t{input_name}: " + " | ".join(map(format_type, input.types))
+        for input_name, input in contract.inputs.items()
     )
 
     outputs = ",\n".join(
-        f"\t{output_name}: {format_type(output_type)}"
-        for output_name, output_type in contract.outputs.items()
+        f"\t{output_name}: {format_type(output.type)}"
+        for output_name, output in contract.outputs.items()
     )
 
     return f"{contract}(\n{inputs}\n) -> {{\n{outputs}\n}}"
