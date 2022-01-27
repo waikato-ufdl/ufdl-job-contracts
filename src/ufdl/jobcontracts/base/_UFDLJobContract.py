@@ -29,7 +29,7 @@ class UFDLJobContract(ABC):
         for input_name, input_constructor in input_constructors.items():
             if not isinstance(input_name, str) or not input_name.isidentifier():
                 raise ValueError("All input names must be valid identifiers")
-            if not isinstance(input_constructors, Input):
+            if not isinstance(input_constructor, Input):
                 raise ValueError(f"Input '{input_name}' is not an {Input.__name__}")
 
         if not isinstance(output_constructors, dict):
