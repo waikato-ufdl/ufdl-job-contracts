@@ -69,6 +69,12 @@ class UFDLJobContract(ABC):
             self,
             types: Dict[JobContractParamName, AnyUFDLType]
     ):
+        # Attempting to fix all bounds will check for type correctness
+        self.params().get_new_bounds_for_fixed(**{
+            str(name): type
+            for name, type in types.items()
+        })
+
         inputs: Dict[str, Tuple[AnyUFDLType, ...]] = {
             input_name: tuple(
                 input_constructor.construct(types) if isinstance(input_constructor, TypeConstructor)
