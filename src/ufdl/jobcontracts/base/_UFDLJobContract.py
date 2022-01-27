@@ -16,8 +16,8 @@ class UFDLJobContract(ABC):
 
     def __init_subclass__(cls, **kwargs):
         params = kwargs.pop('params')
-        inputs_constructors = params.pop('inputs')
-        outputs_constructor = params.pop('outputs')
+        inputs_constructors = kwargs.pop('inputs')
+        outputs_constructor = kwargs.pop('outputs')
 
         if not isinstance(params, JobContractParams):
             raise TypeError(f"Expected {JobContractParams}, got {type(params)}")
