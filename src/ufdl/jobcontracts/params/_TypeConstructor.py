@@ -1,10 +1,8 @@
 from typing import Dict, Iterator, List, Optional, Type, Union
 
-from ufdl.jobtypes import AnyUFDLType
 from ufdl.jobtypes.base import UFDLType
-from ufdl.jobtypes.error import IsNotSubtypeException
 from ufdl.jobtypes.initialise import name_type_translate
-from ufdl.jobtypes.util import format_type, is_subtype
+from ufdl.jobtypes.util import format_type, is_subtype, AnyUFDLType
 
 from ._JobContractParamName import JobContractParamName
 

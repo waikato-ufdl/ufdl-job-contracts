@@ -1,9 +1,8 @@
 from abc import ABC
 from typing import Dict, Tuple, Union
 
-from ufdl.jobtypes import AnyUFDLType
 from ufdl.jobtypes.base import UFDLJSONType
-from ufdl.jobtypes.util import format_type_args_or_params, is_subtype, is_ufdl_type
+from ufdl.jobtypes.util import format_type_args_or_params, is_subtype, is_ufdl_type, AnyUFDLType
 
 from ..initialise import name_type_translate
 from ..params import JobContractParamName, JobContractParams, TypeConstructor

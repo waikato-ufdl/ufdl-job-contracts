@@ -1,11 +1,8 @@
-from typing import Dict
-
-from ufdl.jobtypes.base import UFDLType
 from ufdl.jobtypes.standard import Model, PK
 from ufdl.jobtypes.standard.server import Dataset, Domain, Framework
 
 from ..base import UFDLJobContract
-from ..params import JobContractParamName, JobContractParams, TypeConstructor
+from ..params import JobContractParams, TypeConstructor
 
 train_params = JobContractParams()
 DomainType = train_params.add_simple_param('DomainType', Domain)

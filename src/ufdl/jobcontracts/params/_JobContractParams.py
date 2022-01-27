@@ -1,9 +1,8 @@
 from collections import OrderedDict
 from typing import Dict, Iterable, Iterator, Optional, Tuple, Type, Union
 
-from ufdl.jobtypes import AnyUFDLType
 from ufdl.jobtypes.base import UFDLType
-from ufdl.jobtypes.util import is_subtype, format_type
+from ufdl.jobtypes.util import is_subtype, format_type, AnyUFDLType
 
 from ._JobContractParam import JobContractParam
 from ._JobContractParamName import JobContractParamName

@@ -1,7 +1,6 @@
 from typing import Iterator, List, Union
 
-from ufdl.jobtypes import AnyUFDLType
-from ufdl.jobtypes.util import format_type
+from ufdl.jobtypes.util import format_type, AnyUFDLType
 
 from ._JobContractParamName import JobContractParamName
 from ._TypeConstructor import TypeConstructor
