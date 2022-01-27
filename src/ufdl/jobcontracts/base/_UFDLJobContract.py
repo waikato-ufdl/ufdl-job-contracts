@@ -1,11 +1,12 @@
 from abc import ABC
-from typing import Dict, Tuple, Union
+from typing import Dict, Union
 
-from ufdl.jobtypes.base import UFDLJSONType
-from ufdl.jobtypes.util import format_type_args_or_params, is_subtype, is_ufdl_type, AnyUFDLType
+from ufdl.jobtypes.util import format_type_args_or_params, AnyUFDLType
 
+from . import Output
 from ..initialise import name_type_translate
 from ..params import JobContractParamName, JobContractParams, TypeConstructor
+from ._Input import Input
 
 
 class UFDLJobContract(ABC):
@@ -16,43 +17,33 @@ class UFDLJobContract(ABC):
 
     def __init_subclass__(cls, **kwargs):
         params = kwargs.pop('params')
-        inputs_constructors = kwargs.pop('inputs')
-        outputs_constructor = kwargs.pop('outputs')
+        input_constructors = kwargs.pop('inputs')
+        output_constructors = kwargs.pop('outputs')
 
         if not isinstance(params, JobContractParams):
             raise TypeError(f"Expected {JobContractParams}, got {type(params)}")
 
-        if not isinstance(inputs_constructors, dict):
+        if not isinstance(input_constructors, dict):
             raise TypeError(f"Inputs to a job-contract should be a dictionary")
 
-        for input_name, input_constructors in inputs_constructors.items():
+        for input_name, input_constructor in input_constructors.items():
             if not isinstance(input_name, str) or not input_name.isidentifier():
                 raise ValueError("All input names must be valid identifiers")
-            if not isinstance(input_constructors, tuple):
-                raise ValueError("Input constructors should be a tuple")
-            for input_constructor in input_constructors:
-                if isinstance(input_constructor, TypeConstructor):
-                    bound_base = input_constructor.bound_base
-                    if bound_base is not None and not is_subtype(bound_base, UFDLJSONType):
-                        raise ValueError(f"Input constructor for '{input_name}' is not guaranteed to construct a JSON-compatible type")
-                elif is_ufdl_type(input_constructor):
-                    if not is_subtype(input_constructor, UFDLJSONType):
-                        raise ValueError(f"Input type for '{input_name}' must be a JSON-compatible type")
-                else:
-                    raise ValueError("All input constructors must be type-constructors or types")
+            if not isinstance(input_constructors, Input):
+                raise ValueError(f"Input '{input_name}' is not an {Input.__name__}")
 
-        if not isinstance(outputs_constructor, dict):
+        if not isinstance(output_constructors, dict):
             raise TypeError(f"Outputs to a job-contract should be a dictionary")
 
-        for output_name, output_constructor in outputs_constructor.items():
+        for output_name, output_constructor in output_constructors.items():
             if not isinstance(output_name, str) or not output_name.isidentifier():
                 raise ValueError("All output names must be valid identifiers")
-            if not isinstance(output_constructor, TypeConstructor) and not is_ufdl_type(output_constructor):
-                raise ValueError("All output constructors must be type-constructors or types")
+            if not isinstance(output_constructor, Output):
+                raise ValueError(f"Output '{output_name}' is not an {Output.__name__}")
 
         cls._params = params
-        cls._inputs_constructors: Dict[str, Tuple[Union[TypeConstructor, AnyUFDLType], ...]] = inputs_constructors
-        cls._outputs_constructors: Dict[str, Union[TypeConstructor, AnyUFDLType]] = outputs_constructor
+        cls._inputs_constructors: Dict[str, Input[Union[TypeConstructor, AnyUFDLType]]] = input_constructors
+        cls._outputs_constructors: Dict[str, Output[Union[TypeConstructor, AnyUFDLType]]] = output_constructors
 
     @classmethod
     def params(cls):
@@ -75,19 +66,25 @@ class UFDLJobContract(ABC):
             for name, type in types.items()
         })
 
-        inputs: Dict[str, Tuple[AnyUFDLType, ...]] = {
-            input_name: tuple(
-                input_constructor.construct(types) if isinstance(input_constructor, TypeConstructor)
-                else input_constructor
-                for input_constructor in input_constructors
+        inputs: Dict[str, Input[AnyUFDLType]] = {
+            input_name: Input(
+                *(
+                    input_constructor.construct(types) if isinstance(input_constructor, TypeConstructor)
+                    else input_constructor
+                    for input_constructor in input_constructors.types
+                ),
+                help=input_constructors.help
             )
             for input_name, input_constructors in self._inputs_constructors.items()
         }
 
-        outputs: Dict[str, AnyUFDLType] = {
-            output_name: (
-                output_constructor.construct(types) if isinstance(output_constructor, TypeConstructor)
-                else output_constructor
+        outputs: Dict[str, Output[AnyUFDLType]] = {
+            output_name: Output(
+                (
+                    output_constructor.type.construct(types) if isinstance(output_constructor.type, TypeConstructor)
+                    else output_constructor.type
+                ),
+                help=output_constructor.help
             )
             for output_name, output_constructor in self._outputs_constructors.items()
         }
