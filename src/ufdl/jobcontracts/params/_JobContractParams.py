@@ -127,7 +127,6 @@ class JobContractParams(Iterable[JobContractParam]):
             param: JobContractParam
     ):
         param_bound = param.bound
-        assert isinstance(param.bound, TypeConstructor)
         for dependency_param_name in param.dependencies:
             dependency_param = self[dependency_param_name]
             fix_types = param_bound.extract_dependency_type(dependency_param_name, fixed_bounds[str(param.name)][0])
