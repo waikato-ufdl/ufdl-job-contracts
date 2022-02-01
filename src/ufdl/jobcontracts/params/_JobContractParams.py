@@ -20,6 +20,9 @@ class JobContractParams(Iterable[JobContractParam]):
             name = str(name)
         return self._params[name]
 
+    def __contains__(self, name: Union[JobContractParamName, str]) -> bool:
+        return name in self._params
+
     def names(self) -> Iterator[str]:
         return iter(self._params.keys())
 
