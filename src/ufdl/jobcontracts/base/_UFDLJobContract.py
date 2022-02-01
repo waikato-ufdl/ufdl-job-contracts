@@ -60,6 +60,16 @@ class UFDLJobContract(ABC):
             self,
             types: Dict[JobContractParamName, UFDLType]
     ):
+        # Make sure all parameters are specified
+        for param in self._params:
+            if param.name not in types:
+                raise ValueError(f"Contract {self.format()} missing type-argument \"{param.name}\"")
+
+        # Make sure only the parameters are specified
+        for name in types:
+            if name not in self._params:
+                raise ValueError(f"Contract {self.format()} given unknown type-argument \"{name}\"")
+
         # Attempting to fix all bounds will check for type correctness
         self.params().get_new_bounds_for_fixed(**{
             str(name): type
