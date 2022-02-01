@@ -1,7 +1,5 @@
 from typing import Type
 
-from ufdl.jobtypes.util import format_type
-
 from ..base import UFDLJobContract
 from ..initialise import name_type_translate
 
@@ -32,12 +30,12 @@ def format_contract(
         return str(contract)
 
     inputs = ",\n".join(
-        f"\t{input_name}: " + " | ".join(map(format_type, input.types))
+        f"\t{input_name}: " + " | ".join(map(str, input.types))
         for input_name, input in contract.inputs.items()
     )
 
     outputs = ",\n".join(
-        f"\t{output_name}: {format_type(output.type)}"
+        f"\t{output_name}: {output.type}"
         for output_name, output in contract.outputs.items()
     )
 

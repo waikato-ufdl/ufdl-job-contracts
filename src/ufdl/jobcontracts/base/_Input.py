@@ -1,7 +1,6 @@
 from typing import Generic
 
-from ufdl.jobtypes.base import UFDLJSONType
-from ufdl.jobtypes.util import is_subtype, is_ufdl_type
+from ufdl.jobtypes.base import UFDLJSONType, UFDLType
 
 from ..params import TypeConstructor
 from ._TypesType import TypesType
@@ -12,10 +11,10 @@ class Input(Generic[TypesType]):
         for input_type in types:
             if isinstance(input_type, TypeConstructor):
                 bound_base = input_type.bound_base
-                if bound_base is not None and not is_subtype(bound_base, UFDLJSONType):
+                if bound_base is not None and not bound_base.is_subtype_of(UFDLJSONType()):
                     raise ValueError(f"Input constructor is not guaranteed to construct a JSON-compatible type")
-            elif is_ufdl_type(input_type):
-                if not is_subtype(input_type, UFDLJSONType):
+            elif isinstance(input_type, UFDLType):
+                if not input_type.is_subtype_of(UFDLJSONType()):
                     raise ValueError(f"Input type must be a JSON-compatible type")
             else:
                 raise ValueError("All input constructors must be type-constructors or types")

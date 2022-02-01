@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Dict, Union
 
-from ufdl.jobtypes.util import format_type_args_or_params, AnyUFDLType
+from ufdl.jobtypes.base import UFDLType
 
 from . import Output
 from ..initialise import name_type_translate
@@ -42,8 +42,8 @@ class UFDLJobContract(ABC):
                 raise ValueError(f"Output '{output_name}' is not an {Output.__name__}")
 
         cls._params = params
-        cls._inputs_constructors: Dict[str, Input[Union[TypeConstructor, AnyUFDLType]]] = input_constructors
-        cls._outputs_constructors: Dict[str, Output[Union[TypeConstructor, AnyUFDLType]]] = output_constructors
+        cls._inputs_constructors: Dict[str, Input[Union[TypeConstructor, UFDLType]]] = input_constructors
+        cls._outputs_constructors: Dict[str, Output[Union[TypeConstructor, UFDLType]]] = output_constructors
 
     @classmethod
     def params(cls):
@@ -58,7 +58,7 @@ class UFDLJobContract(ABC):
 
     def __init__(
             self,
-            types: Dict[JobContractParamName, AnyUFDLType]
+            types: Dict[JobContractParamName, UFDLType]
     ):
         # Attempting to fix all bounds will check for type correctness
         self.params().get_new_bounds_for_fixed(**{
@@ -66,7 +66,7 @@ class UFDLJobContract(ABC):
             for name, type in types.items()
         })
 
-        inputs: Dict[str, Input[AnyUFDLType]] = {
+        inputs: Dict[str, Input[UFDLType]] = {
             input_name: Input(
                 *(
                     input_constructor.construct(types) if isinstance(input_constructor, TypeConstructor)
@@ -78,7 +78,7 @@ class UFDLJobContract(ABC):
             for input_name, input_constructors in self._inputs_constructors.items()
         }
 
-        outputs: Dict[str, Output[AnyUFDLType]] = {
+        outputs: Dict[str, Output[UFDLType]] = {
             output_name: Output(
                 (
                     output_constructor.type.construct(types) if isinstance(output_constructor.type, TypeConstructor)
@@ -101,12 +101,23 @@ class UFDLJobContract(ABC):
     def outputs(self):
         return self._outputs
 
-    def __str__(self):
-        name = name_type_translate(type(self))
+    @classmethod
+    def contract_class_name(cls) -> str:
+        name = name_type_translate(cls)
         if name is None:
-            raise TypeError(f"No name translation for {type(self)}")
-        args = (
+            raise TypeError(f"No name translation for {cls}")
+        return name
+
+    def format_type_args(self) -> str:
+        args = tuple(
             self._types[param.name]
             for param in self._params
         )
-        return f"{name}{format_type_args_or_params(*args)}"
+
+        if len(args) == 0:
+            return ""
+
+        return f"<{', '.join(str(arg) for arg in args)}>"
+
+    def __str__(self):
+        return f"{self.contract_class_name()}{self.format_type_args()}"

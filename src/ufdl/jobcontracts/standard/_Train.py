@@ -5,8 +5,8 @@ from ..base import UFDLJobContract, Input, Output
 from ..params import JobContractParams, TypeConstructor
 
 train_params = JobContractParams()
-DomainType = train_params.add_simple_param('DomainType', Domain)
-FrameworkType = train_params.add_simple_param('FrameworkType', Framework)
+DomainType = train_params.add_simple_param('DomainType', Domain())
+FrameworkType = train_params.add_simple_param('FrameworkType', Framework())
 
 model_type_constructor = TypeConstructor.indirect_dependency(
     Model,

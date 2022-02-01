@@ -2,7 +2,6 @@ from collections import OrderedDict
 from typing import Dict, Iterable, Iterator, Optional, Tuple, Type, Union
 
 from ufdl.jobtypes.base import UFDLType
-from ufdl.jobtypes.util import is_subtype, format_type, AnyUFDLType
 
 from ._JobContractParam import JobContractParam
 from ._JobContractParamName import JobContractParamName
@@ -24,7 +23,7 @@ class JobContractParams(Iterable[JobContractParam]):
     def names(self) -> Iterator[str]:
         return iter(self._params.keys())
 
-    def add_simple_param(self, name: str, bound: AnyUFDLType) -> JobContractParamName:
+    def add_simple_param(self, name: str, bound: UFDLType) -> JobContractParamName:
         return self.add_param(name, bound)
 
     def add_direct_param(self, name: str, bound: JobContractParamName):
@@ -34,11 +33,11 @@ class JobContractParams(Iterable[JobContractParam]):
             self,
             name: str,
             bound: Type[UFDLType],
-            *args: Union[AnyUFDLType, JobContractParamName, TypeConstructor]
+            *args: Union[UFDLType, JobContractParamName, TypeConstructor]
     ) -> JobContractParamName:
         return self.add_param(name, TypeConstructor(bound, *args))
 
-    def add_param(self, name: str, bound: Union[AnyUFDLType, TypeConstructor]):
+    def add_param(self, name: str, bound: Union[UFDLType, TypeConstructor]):
         if name in self._params:
             raise ValueError(f"Parameter '{name}' already exists")
 
@@ -65,7 +64,7 @@ class JobContractParams(Iterable[JobContractParam]):
 
         return JobContractParamName(name)
 
-    def get_new_bounds_for_fixed(self, **fixes: AnyUFDLType) -> Dict[str, Tuple[AnyUFDLType, Optional[AnyUFDLType]]]:
+    def get_new_bounds_for_fixed(self, **fixes: UFDLType) -> Dict[str, Tuple[UFDLType, Optional[UFDLType]]]:
         """
         Given a number of 'fixes' (a fixed type for a type-parameter, returns a dictionary from
         each type parameter to the (lower, upper) boundary types that the type parameter can take
@@ -103,7 +102,7 @@ class JobContractParams(Iterable[JobContractParam]):
 
     def _update_dependents(
             self,
-            fixed_bounds: Dict[str, Tuple[AnyUFDLType, Optional[AnyUFDLType]]],
+            fixed_bounds: Dict[str, Tuple[UFDLType, Optional[UFDLType]]],
             param: JobContractParam
     ):
         for dependent_param_name in param.dependents:
@@ -123,7 +122,7 @@ class JobContractParams(Iterable[JobContractParam]):
 
     def _update_dependencies(
             self,
-            fixed_bounds: Dict[str, Tuple[AnyUFDLType, Optional[AnyUFDLType]]],
+            fixed_bounds: Dict[str, Tuple[UFDLType, Optional[UFDLType]]],
             param: JobContractParam
     ):
         param_bound = param.bound
@@ -142,27 +141,27 @@ class JobContractParams(Iterable[JobContractParam]):
 
     @staticmethod
     def _update_fixed_bounds(
-            fixed_bounds: Dict[str, Tuple[AnyUFDLType, Optional[AnyUFDLType]]],
+            fixed_bounds: Dict[str, Tuple[UFDLType, Optional[UFDLType]]],
             param_name: str,
-            new_lower_bound: Optional[AnyUFDLType],
-            new_upper_bound: Optional[AnyUFDLType]
+            new_lower_bound: Optional[UFDLType],
+            new_upper_bound: Optional[UFDLType]
     ):
         current_lower_bound, current_upper_bound = fixed_bounds[param_name]
 
-        if new_lower_bound is None or is_subtype(current_lower_bound, new_lower_bound):
+        if new_lower_bound is None or current_lower_bound.is_subtype_of(new_lower_bound):
             new_lower_bound = current_lower_bound
-        elif not is_subtype(new_lower_bound, current_lower_bound):
-            raise ValueError(f"Incompatible lower bounds {format_type(new_lower_bound)} and {format_type(current_lower_bound)}")
+        elif not new_lower_bound.is_subtype_of(current_lower_bound):
+            raise ValueError(f"Incompatible lower bounds {new_lower_bound} and {current_lower_bound}")
 
         if current_upper_bound is None:
             pass
-        elif new_upper_bound is None or is_subtype(new_upper_bound, current_upper_bound):
+        elif new_upper_bound is None or new_upper_bound.is_subtype_of(current_upper_bound):
             new_upper_bound = current_upper_bound
-        elif not is_subtype(current_upper_bound, new_upper_bound):
-            raise ValueError(f"Incompatible upper bounds {format_type(new_upper_bound)} and {format_type(current_upper_bound)}")
+        elif not current_upper_bound.is_subtype_of(new_upper_bound):
+            raise ValueError(f"Incompatible upper bounds {new_upper_bound} and {current_upper_bound}")
 
-        if new_upper_bound is not None and not is_subtype(new_upper_bound, new_lower_bound):
-            raise ValueError(f"Bounds crossed: {format_type(new_upper_bound)} is not a sub-type of {format_type(new_lower_bound)}")
+        if new_upper_bound is not None and not new_upper_bound.is_subtype_of(new_lower_bound):
+            raise ValueError(f"Bounds crossed: {new_upper_bound} is not a sub-type of {new_lower_bound}")
 
         fixed_bounds[param_name] = (new_lower_bound, new_upper_bound)
 

@@ -1,8 +1,7 @@
 from typing import Dict, Iterator, List, Optional, Type, Union
 
 from ufdl.jobtypes.base import UFDLType
-from ufdl.jobtypes.initialise import name_type_translate
-from ufdl.jobtypes.util import format_type, is_subtype, AnyUFDLType
+from ufdl.jobtypes.initialise import type_translate
 
 from ._JobContractParamName import JobContractParamName
 
@@ -20,14 +19,14 @@ class TypeConstructor:
     def indirect_dependency(
             cls,
             bound: Type[UFDLType],
-            *args: Union[AnyUFDLType, JobContractParamName, 'TypeConstructor']
+            *args: Union[UFDLType, JobContractParamName, 'TypeConstructor']
     ) -> 'TypeConstructor':
         return TypeConstructor(bound, *args)
 
     def __init__(
             self,
             bound: Union[Type[UFDLType], JobContractParamName],
-            *args: Union[AnyUFDLType, JobContractParamName, 'TypeConstructor']):
+            *args: Union[UFDLType, JobContractParamName, 'TypeConstructor']):
         if isinstance(bound, JobContractParamName):
             if len(args) > 0:
                 raise ValueError("Cannot supply arguments to a parameter")
@@ -37,7 +36,7 @@ class TypeConstructor:
             num_args_supplied = len(args)
             num_args_expected = len(expected_base_types)
             if num_args_supplied != num_args_expected:
-                raise ValueError(f"{format_type(bound)} expects {num_args_expected} args but received {num_args_supplied}")
+                raise ValueError(f"{bound} expects {num_args_expected} args but received {num_args_supplied}")
             bound_base_args = []
             for arg, expected_base_type in zip(args, expected_base_types):
                 if isinstance(arg, JobContractParamName):
@@ -72,7 +71,7 @@ class TypeConstructor:
     def dependencies(self) -> Iterator[JobContractParamName]:
         yield from self._dependencies
 
-    def construct(self, types: Dict[JobContractParamName, AnyUFDLType]) -> AnyUFDLType:
+    def construct(self, types: Dict[JobContractParamName, UFDLType]) -> UFDLType:
         if isinstance(self._bound, JobContractParamName):
             return types[self._bound]
 
@@ -90,19 +89,18 @@ class TypeConstructor:
             return str(self._bound)
 
         formatted_args = ", ".join(
-            str(arg) if isinstance(arg, JobContractParamName)
-            else arg.bound_str() if isinstance(arg, TypeConstructor)
-            else format_type(arg)
+            arg.bound_str() if isinstance(arg, TypeConstructor)
+            else str(arg)
             for arg in self._args
         )
 
-        return f"{name_type_translate(self._bound)}<{formatted_args}>"
+        return f"{self._bound.format_type_class_name()}<{formatted_args}>"
 
     def extract_dependency_type(
             self,
             dependency_name: Union[str, JobContractParamName],
-            from_type: AnyUFDLType
-    ) -> List[AnyUFDLType]:
+            from_type: UFDLType
+    ) -> List[UFDLType]:
         # Check the name is one of our dependencies
         if dependency_name not in self._dependencies:
             raise ValueError(f"{dependency_name} is not a dependency of {self.bound_str()}")
@@ -111,7 +109,7 @@ class TypeConstructor:
         if isinstance(self._bound, JobContractParamName):
             return [from_type]
 
-        if not is_subtype(from_type, self._bound_base):
+        if not from_type.is_subtype_of(self._bound_base):
             raise ValueError(f"Type {from_type} is not constructable by {self.bound_str()}")
 
         results = []

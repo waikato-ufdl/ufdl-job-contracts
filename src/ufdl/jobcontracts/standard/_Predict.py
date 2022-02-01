@@ -6,8 +6,8 @@ from ..params import JobContractParams, TypeConstructor
 
 # Type parameters
 predict_params = JobContractParams()
-DomainType = predict_params.add_simple_param('DomainType', Domain)
-FrameworkType = predict_params.add_simple_param('FrameworkType', Framework)
+DomainType = predict_params.add_simple_param('DomainType', Domain())
+FrameworkType = predict_params.add_simple_param('FrameworkType', Framework())
 
 # IO type constructors
 model_type_constructor = TypeConstructor.indirect_dependency(

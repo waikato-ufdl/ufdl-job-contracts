@@ -1,6 +1,6 @@
 from typing import Iterator, List, Union
 
-from ufdl.jobtypes.util import format_type, AnyUFDLType
+from ufdl.jobtypes.base import UFDLType
 
 from ._JobContractParamName import JobContractParamName
 from ._TypeConstructor import TypeConstructor
@@ -13,8 +13,8 @@ class JobContractParam:
     def __init__(
             self,
             name: str,
-            bound: Union[AnyUFDLType, TypeConstructor],
-            bound_base: AnyUFDLType
+            bound: Union[UFDLType, TypeConstructor],
+            bound_base: UFDLType
     ):
         if not name.isidentifier():
             raise ValueError("Parameter names must be identifiers")
@@ -26,11 +26,11 @@ class JobContractParam:
         self._dependents: List[str] = []
 
     @property
-    def bound(self) -> Union[AnyUFDLType, TypeConstructor]:
+    def bound(self) -> Union[UFDLType, TypeConstructor]:
         return self._bound
 
     @property
-    def bound_base(self) -> AnyUFDLType:
+    def bound_base(self) -> UFDLType:
         """
         Gets the base type of the bound of this parameter.
         """
@@ -55,7 +55,7 @@ class JobContractParam:
         """
         return (
             self._bound.bound_str() if isinstance(self._bound, TypeConstructor)
-            else format_type(self._bound)
+            else str(self._bound)
         )
 
     def add_dependent(self, dependent: str):
