@@ -14,6 +14,8 @@ class UFDLJobContract(ABC):
     TODO
     """
     _params: JobContractParams
+    _inputs_constructors: Dict[str, Input[Union[TypeConstructor, UFDLType]]]
+    _outputs_constructors: Dict[str, Output[Union[TypeConstructor, UFDLType]]]
 
     def __init_subclass__(cls, **kwargs):
         params = kwargs.pop('params')
@@ -42,19 +44,31 @@ class UFDLJobContract(ABC):
                 raise ValueError(f"Output '{output_name}' is not an {Output.__name__}")
 
         cls._params = params
-        cls._inputs_constructors: Dict[str, Input[Union[TypeConstructor, UFDLType]]] = input_constructors
-        cls._outputs_constructors: Dict[str, Output[Union[TypeConstructor, UFDLType]]] = output_constructors
+        cls._inputs_constructors = input_constructors
+        cls._outputs_constructors = output_constructors
 
     @classmethod
     def params(cls):
         return cls._params
 
     @classmethod
-    def format(cls):
+    def input_constructors(cls):
+        return cls._inputs_constructors
+
+    @classmethod
+    def output_constructors(cls):
+        return cls._outputs_constructors
+
+    @classmethod
+    def contract_class_name(cls) -> str:
         name = name_type_translate(cls)
         if name is None:
             raise TypeError(f"No name translation for {cls}")
-        return f"{name}{cls._params}"
+        return name
+
+    @classmethod
+    def format(cls):
+        return f"{cls.contract_class_name()}{cls._params}"
 
     def __init__(
             self,
@@ -110,13 +124,6 @@ class UFDLJobContract(ABC):
     @property
     def outputs(self):
         return self._outputs
-
-    @classmethod
-    def contract_class_name(cls) -> str:
-        name = name_type_translate(cls)
-        if name is None:
-            raise TypeError(f"No name translation for {cls}")
-        return name
 
     def format_type_args(self) -> str:
         args = tuple(
