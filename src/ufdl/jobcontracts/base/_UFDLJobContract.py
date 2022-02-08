@@ -125,6 +125,10 @@ class UFDLJobContract(ABC):
     def outputs(self):
         return self._outputs
 
+    @property
+    def types(self):
+        return self._types
+
     def format_type_args(self) -> str:
         args = tuple(
             self._types[param.name]
