@@ -46,4 +46,14 @@ class Predict(
         )
     }
 ):
-    pass
+    @property
+    def model(self):
+        return self.inputs['model']
+
+    @property
+    def dataset(self):
+        return self.inputs['dataset']
+
+    @property
+    def predictions(self):
+        return self.outputs['predictions']

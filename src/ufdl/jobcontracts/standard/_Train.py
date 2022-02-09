@@ -37,4 +37,10 @@ class Train(
     """
     Job contract for jobs which train a model from a dataset.
     """
-    pass
+    @property
+    def dataset(self):
+        return self.inputs['dataset']
+
+    @property
+    def model(self):
+        return self.outputs['model']
