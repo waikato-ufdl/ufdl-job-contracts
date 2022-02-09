@@ -140,5 +140,27 @@ class UFDLJobContract(ABC):
 
         return f"<{', '.join(str(arg) for arg in args)}>"
 
+    def is_subtype_of(self, other: 'UFDLJobContract') -> bool:
+        """
+        Checks if this contract can be used in place of another contract.
+
+        :param other:
+                    The other contract to compare this one to.
+        :return:
+                    Whether this contract can be used in place of other.
+        """
+        return (
+                type(self) is type(other)
+                and all(
+                    other_type.is_subtype_of(self_type)
+                    for input_name in self.inputs.keys()
+                    for self_type, other_type in zip(self.inputs[input_name].types, other.inputs[input_name].types)
+                )
+                and all(
+                    self.outputs[output_name].type.is_subtype_of(other.outputs[output_name].type)
+                    for output_name in self.outputs.keys()
+                )
+        )
+
     def __str__(self):
         return f"{self.contract_class_name()}{self.format_type_args()}"
