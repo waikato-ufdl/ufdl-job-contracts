@@ -19,8 +19,13 @@ class Input(Generic[TypesType]):
             else:
                 raise ValueError("All input constructors must be type-constructors or types")
 
+        self._name = ""
         self._types = types
         self._help = help
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def types(self):

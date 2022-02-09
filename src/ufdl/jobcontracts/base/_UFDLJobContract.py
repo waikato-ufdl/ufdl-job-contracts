@@ -33,6 +33,7 @@ class UFDLJobContract(ABC):
                 raise ValueError("All input names must be valid identifiers")
             if not isinstance(input_constructor, Input):
                 raise ValueError(f"Input '{input_name}' is not an {Input.__name__}")
+            input_constructor._name = input_name
 
         if not isinstance(output_constructors, dict):
             raise TypeError(f"Outputs to a job-contract should be a dictionary")
@@ -42,6 +43,7 @@ class UFDLJobContract(ABC):
                 raise ValueError("All output names must be valid identifiers")
             if not isinstance(output_constructor, Output):
                 raise ValueError(f"Output '{output_name}' is not an {Output.__name__}")
+            output_constructor._name = output_name
 
         cls._params = params
         cls._inputs_constructors = input_constructors
@@ -112,6 +114,11 @@ class UFDLJobContract(ABC):
             )
             for output_name, output_constructor in self._outputs_constructors.items()
         }
+
+        for input_name, input in inputs.items():
+            input._name = input_name
+        for output_name, output in outputs.items():
+            output._name = output_name
 
         self._inputs = inputs
         self._outputs = outputs

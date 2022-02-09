@@ -11,8 +11,13 @@ class Output(Generic[TypesType]):
         if not isinstance(type, TypeConstructor) and not isinstance(type, UFDLType):
             raise ValueError("All output constructors must be type-constructors or types")
 
+        self._name = ""
         self._type = type
         self._help = help
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def type(self):
