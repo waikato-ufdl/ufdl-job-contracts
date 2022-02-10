@@ -76,10 +76,20 @@ class UFDLJobContract(ABC):
             self,
             types: Dict[str, UFDLType]
     ):
-        # Make sure all parameters are specified
-        for param in self._params:
-            if param.name not in types:
-                raise ValueError(f"Contract {self.format()} missing type-argument \"{param.name}\"")
+        # Make sure types really is a dict
+        if not isinstance(types, dict):
+            raise ValueError(f"Contract {self.format()} not initialised by dict: ({type(types)}) {types}")
+
+        # Make sure all parameters are specified and are types
+        for param_name in self._params.names():
+            if param_name not in types:
+                raise ValueError(f"Contract {self.format()} missing type-argument \"{param_name}\"")
+            param_type = types[param_name]
+            if not isinstance(param_type, UFDLType):
+                raise ValueError(
+                    f"Contract {self.format()} received non-type argument for parameter \"{param_name}\": "
+                    f"({type(param_type)}) {param_type}"
+                )
 
         # Make sure only the parameters are specified
         for name in types:
@@ -88,8 +98,8 @@ class UFDLJobContract(ABC):
 
         # Attempting to fix all bounds will check for type correctness
         self.params().get_new_bounds_for_fixed(**{
-            str(name): type
-            for name, type in types.items()
+            str(param_name): param_type
+            for param_name, param_type in types.items()
         })
 
         inputs: Dict[str, Input[UFDLType]] = {
