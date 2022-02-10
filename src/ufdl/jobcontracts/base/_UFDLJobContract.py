@@ -5,7 +5,7 @@ from ufdl.jobtypes.base import UFDLType
 
 from . import Output
 from ..initialise import name_type_translate
-from ..params import JobContractParamName, JobContractParams, TypeConstructor
+from ..params import JobContractParams, TypeConstructor
 from ._Input import Input
 
 
@@ -74,7 +74,7 @@ class UFDLJobContract(ABC):
 
     def __init__(
             self,
-            types: Dict[JobContractParamName, UFDLType]
+            types: Dict[str, UFDLType]
     ):
         # Make sure all parameters are specified
         for param in self._params:

@@ -4,7 +4,6 @@ from typing import Dict, Iterable, Iterator, Optional, Tuple, Type, Union
 from ufdl.jobtypes.base import UFDLType
 
 from ._JobContractParam import JobContractParam
-from ._JobContractParamName import JobContractParamName
 from ._TypeConstructor import TypeConstructor
 
 
@@ -15,29 +14,27 @@ class JobContractParams(Iterable[JobContractParam]):
     def __init__(self):
         self._params: OrderedDict[str, JobContractParam] = OrderedDict()
 
-    def __getitem__(self, name: Union[JobContractParamName, str]):
-        if isinstance(name, JobContractParamName):
-            name = str(name)
+    def __getitem__(self, name: str):
         return self._params[name]
 
-    def __contains__(self, name: Union[JobContractParamName, str]) -> bool:
+    def __contains__(self, name: str) -> bool:
         return name in self._params
 
     def names(self) -> Iterator[str]:
         return iter(self._params.keys())
 
-    def add_simple_param(self, name: str, bound: UFDLType) -> JobContractParamName:
+    def add_simple_param(self, name: str, bound: UFDLType) -> str:
         return self.add_param(name, bound)
 
-    def add_direct_param(self, name: str, bound: JobContractParamName):
+    def add_direct_param(self, name: str, bound: str):
         self.add_param(name, TypeConstructor(bound))
 
     def add_dependent_param(
             self,
             name: str,
             bound: Type[UFDLType],
-            *args: Union[UFDLType, JobContractParamName, TypeConstructor]
-    ) -> JobContractParamName:
+            *args: Union[UFDLType, str, TypeConstructor]
+    ) -> str:
         return self.add_param(name, TypeConstructor(bound, *args))
 
     def add_param(self, name: str, bound: Union[UFDLType, TypeConstructor]):
@@ -65,7 +62,7 @@ class JobContractParams(Iterable[JobContractParam]):
 
         self._params[name] = param
 
-        return JobContractParamName(name)
+        return name
 
     def get_new_bounds_for_fixed(self, **fixes: UFDLType) -> Dict[str, Tuple[UFDLType, Optional[UFDLType]]]:
         """
@@ -116,7 +113,7 @@ class JobContractParams(Iterable[JobContractParam]):
                 fixed_bounds,
                 dependent_param_name,
                 dependent_param_bound.construct({
-                    JobContractParamName(name): bounds[0]
+                    name: bounds[0]
                     for name, bounds in fixed_bounds.items()
                 }),
                 None

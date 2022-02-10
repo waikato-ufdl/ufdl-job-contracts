@@ -2,7 +2,6 @@ from typing import Iterator, List, Union
 
 from ufdl.jobtypes.base import UFDLType
 
-from ._JobContractParamName import JobContractParamName
 from ._TypeConstructor import TypeConstructor
 
 
@@ -37,15 +36,15 @@ class JobContractParam:
         return self._bound_base
 
     @property
-    def name(self) -> JobContractParamName:
-        return JobContractParamName(self._name)
+    def name(self) -> str:
+        return self._name
 
     @property
     def dependents(self) -> Iterator[str]:
         return iter(self._dependents)
 
     @property
-    def dependencies(self) -> Iterator[JobContractParamName]:
+    def dependencies(self) -> Iterator[str]:
         if isinstance(self._bound, TypeConstructor):
             yield from self._bound.dependencies
 

@@ -1,3 +1,2 @@
-from ._JobContractParamName import JobContractParamName
 from ._JobContractParams import JobContractParams
 from ._TypeConstructor import TypeConstructor

@@ -1,9 +1,6 @@
 from typing import Dict, Iterator, List, Optional, Type, Union
 
 from ufdl.jobtypes.base import UFDLType
-from ufdl.jobtypes.initialise import type_translate
-
-from ._JobContractParamName import JobContractParamName
 
 
 class TypeConstructor:
@@ -12,22 +9,22 @@ class TypeConstructor:
     parameters are satisfied.
     """
     @classmethod
-    def direct_dependency(cls, bound: JobContractParamName) -> 'TypeConstructor':
+    def direct_dependency(cls, bound: str) -> 'TypeConstructor':
         return cls(bound)
 
     @classmethod
     def indirect_dependency(
             cls,
             bound: Type[UFDLType],
-            *args: Union[UFDLType, JobContractParamName, 'TypeConstructor']
+            *args: Union[UFDLType, str, 'TypeConstructor']
     ) -> 'TypeConstructor':
         return TypeConstructor(bound, *args)
 
     def __init__(
             self,
-            bound: Union[Type[UFDLType], JobContractParamName],
-            *args: Union[UFDLType, JobContractParamName, 'TypeConstructor']):
-        if isinstance(bound, JobContractParamName):
+            bound: Union[Type[UFDLType], str],
+            *args: Union[UFDLType, str, 'TypeConstructor']):
+        if isinstance(bound, str):
             if len(args) > 0:
                 raise ValueError("Cannot supply arguments to a parameter")
             self._bound_base: Optional[UFDLType] = None
@@ -39,7 +36,7 @@ class TypeConstructor:
                 raise ValueError(f"{bound} expects {num_args_expected} args but received {num_args_supplied}")
             bound_base_args = []
             for arg, expected_base_type in zip(args, expected_base_types):
-                if isinstance(arg, JobContractParamName):
+                if isinstance(arg, str):
                     bound_base_args.append(expected_base_type)
                 elif isinstance(arg, TypeConstructor):
                     if arg._bound_base is None:
@@ -53,12 +50,12 @@ class TypeConstructor:
         self._args = args
 
         # Generate the set of dependencies
-        if isinstance(bound, JobContractParamName):
+        if isinstance(bound, str):
             self._dependencies = {bound}
         else:
             self._dependencies = set()
             for arg in args:
-                if isinstance(arg, JobContractParamName):
+                if isinstance(arg, str):
                     self._dependencies.add(arg)
                 elif isinstance(arg, TypeConstructor):
                     self._dependencies.update(arg.dependencies)
@@ -68,16 +65,16 @@ class TypeConstructor:
         return self._bound_base
 
     @property
-    def dependencies(self) -> Iterator[JobContractParamName]:
+    def dependencies(self) -> Iterator[str]:
         yield from self._dependencies
 
-    def construct(self, types: Dict[JobContractParamName, UFDLType]) -> UFDLType:
-        if isinstance(self._bound, JobContractParamName):
+    def construct(self, types: Dict[str, UFDLType]) -> UFDLType:
+        if isinstance(self._bound, str):
             return types[self._bound]
 
         return self._bound(
             tuple(
-                types[arg] if isinstance(arg, JobContractParamName)
+                types[arg] if isinstance(arg, str)
                 else arg.construct(types) if isinstance(arg, TypeConstructor)
                 else arg
                 for arg in self._args
@@ -85,8 +82,8 @@ class TypeConstructor:
         )
 
     def bound_str(self) -> str:
-        if isinstance(self._bound, JobContractParamName):
-            return str(self._bound)
+        if isinstance(self._bound, str):
+            return self._bound
 
         formatted_args = ", ".join(
             arg.bound_str() if isinstance(arg, TypeConstructor)
@@ -98,7 +95,7 @@ class TypeConstructor:
 
     def extract_dependency_type(
             self,
-            dependency_name: Union[str, JobContractParamName],
+            dependency_name: str,
             from_type: UFDLType
     ) -> List[UFDLType]:
         # Check the name is one of our dependencies
@@ -106,7 +103,7 @@ class TypeConstructor:
             raise ValueError(f"{dependency_name} is not a dependency of {self.bound_str()}")
 
         # For a simple dependency, there is only one dependency name, and it matches the entire type
-        if isinstance(self._bound, JobContractParamName):
+        if isinstance(self._bound, str):
             return [from_type]
 
         if not from_type.is_subtype_of(self._bound_base):
@@ -114,7 +111,7 @@ class TypeConstructor:
 
         results = []
         for from_type_type_arg, sub_bound in zip(from_type.type_args, self._args):
-            if isinstance(sub_bound, JobContractParamName):
+            if isinstance(sub_bound, str):
                 if sub_bound == dependency_name:
                     results.append(from_type_type_arg)
             elif isinstance(sub_bound, TypeConstructor):
