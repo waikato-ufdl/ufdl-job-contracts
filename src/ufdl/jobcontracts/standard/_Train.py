@@ -1,7 +1,10 @@
-from ufdl.jobtypes.standard import Model, PK
-from ufdl.jobtypes.standard.server import Dataset, Domain, Framework
+from typing import IO, Union
 
-from ..base import UFDLJobContract, Input, Output
+from ufdl.jobtypes.standard import Model, PK, Name
+from ufdl.jobtypes.standard.server import Dataset, Domain, Framework
+from wai.json.raw import RawJSONObject
+
+from ..base import UFDLJobContract, Input, Output, InputConstructor, OutputConstructor
 from ..params import JobContractParams, TypeConstructor
 
 train_params = JobContractParams()
@@ -12,9 +15,14 @@ model_type_constructor = TypeConstructor.indirect_dependency(
     Model,
     DomainType, FrameworkType
 )
+dataset_type_constructor = TypeConstructor.indirect_dependency(Dataset, DomainType)
 dataset_pk_type_constructor = TypeConstructor.indirect_dependency(
     PK,
-    TypeConstructor.indirect_dependency(Dataset, DomainType)
+    dataset_type_constructor
+)
+dataset_name_type_constructor = TypeConstructor.indirect_dependency(
+    Name,
+    dataset_type_constructor
 )
 
 
@@ -22,13 +30,13 @@ class Train(
     UFDLJobContract,
     params=train_params,
     inputs={
-        "dataset": Input(
+        "dataset": InputConstructor(
             dataset_pk_type_constructor,
             help="The dataset to train the model on"
         )
     },
     outputs={
-        "model": Output(
+        "model": OutputConstructor(
             model_type_constructor,
             help="The trained model"
         )
@@ -38,9 +46,17 @@ class Train(
     Job contract for jobs which train a model from a dataset.
     """
     @property
-    def dataset(self):
+    def domain_type(self) -> Domain:
+        return self.types[DomainType]
+
+    @property
+    def framework_type(self) -> Framework:
+        return self.types[FrameworkType]
+
+    @property
+    def dataset(self) -> Input[RawJSONObject]:
         return self.inputs['dataset']
 
     @property
-    def model(self):
+    def model(self) -> Output[Union[bytes, IO[bytes]]]:
         return self.outputs['model']

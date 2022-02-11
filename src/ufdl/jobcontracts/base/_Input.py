@@ -1,25 +1,18 @@
-from typing import Generic
+from typing import Any, Generic
 
-from ufdl.jobtypes.base import UFDLJSONType, UFDLType
-
-from ..params import TypeConstructor
-from ._TypesType import TypesType
+from ufdl.jobtypes.base import UFDLJSONType, UFDLType, InputType
 
 
-class Input(Generic[TypesType]):
-    def __init__(self, *types: TypesType, help: str):
+class Input(Generic[InputType]):
+    def __init__(self, name: str, *types: UFDLJSONType[tuple, InputType, Any], help: str):
         for input_type in types:
-            if isinstance(input_type, TypeConstructor):
-                bound_base = input_type.bound_base
-                if bound_base is not None and not bound_base.is_subtype_of(UFDLJSONType()):
-                    raise ValueError(f"Input constructor is not guaranteed to construct a JSON-compatible type")
-            elif isinstance(input_type, UFDLType):
-                if not input_type.is_subtype_of(UFDLJSONType()):
-                    raise ValueError(f"Input type must be a JSON-compatible type")
-            else:
-                raise ValueError("All input constructors must be type-constructors or types")
+            if not isinstance(input_type, UFDLType) or not input_type.is_subtype_of(UFDLJSONType()):
+                raise ValueError(
+                    f"All input types must be JSON-compatible UFDL types, received: "
+                    f"({type(input_type)}) {input_type}"
+                )
 
-        self._name = ""
+        self._name = name
         self._types = types
         self._help = help
 

@@ -1,12 +1,15 @@
 from abc import ABC
-from typing import Dict, Union
+from typing import Dict
 
 from ufdl.jobtypes.base import UFDLType
+from ufdl.jobtypes.error import expect
 
-from . import Output
 from ..initialise import name_type_translate
-from ..params import JobContractParams, TypeConstructor
+from ..params import JobContractParams
 from ._Input import Input
+from ._InputConstructor import InputConstructor
+from ._Output import Output
+from ._OutputConstructor import OutputConstructor
 
 
 class UFDLJobContract(ABC):
@@ -14,40 +17,31 @@ class UFDLJobContract(ABC):
     TODO
     """
     _params: JobContractParams
-    _inputs_constructors: Dict[str, Input[Union[TypeConstructor, UFDLType]]]
-    _outputs_constructors: Dict[str, Output[Union[TypeConstructor, UFDLType]]]
+    _input_constructors: Dict[str, InputConstructor]
+    _output_constructors: Dict[str, OutputConstructor]
 
     def __init_subclass__(cls, **kwargs):
-        params = kwargs.pop('params')
-        input_constructors = kwargs.pop('inputs')
-        output_constructors = kwargs.pop('outputs')
-
-        if not isinstance(params, JobContractParams):
-            raise TypeError(f"Expected {JobContractParams}, got {type(params)}")
-
-        if not isinstance(input_constructors, dict):
-            raise TypeError(f"Inputs to a job-contract should be a dictionary")
+        params = expect(JobContractParams, kwargs.pop('params'))
+        input_constructors = expect(dict, kwargs.pop('inputs'))
+        output_constructors = expect(dict, kwargs.pop('outputs'))
 
         for input_name, input_constructor in input_constructors.items():
             if not isinstance(input_name, str) or not input_name.isidentifier():
                 raise ValueError("All input names must be valid identifiers")
-            if not isinstance(input_constructor, Input):
-                raise ValueError(f"Input '{input_name}' is not an {Input.__name__}")
+            if not isinstance(input_constructor, InputConstructor):
+                raise ValueError(f"Input '{input_name}' is not an {InputConstructor.__name__}")
             input_constructor._name = input_name
-
-        if not isinstance(output_constructors, dict):
-            raise TypeError(f"Outputs to a job-contract should be a dictionary")
 
         for output_name, output_constructor in output_constructors.items():
             if not isinstance(output_name, str) or not output_name.isidentifier():
                 raise ValueError("All output names must be valid identifiers")
-            if not isinstance(output_constructor, Output):
-                raise ValueError(f"Output '{output_name}' is not an {Output.__name__}")
+            if not isinstance(output_constructor, OutputConstructor):
+                raise ValueError(f"Output '{output_name}' is not an {OutputConstructor.__name__}")
             output_constructor._name = output_name
 
         cls._params = params
-        cls._inputs_constructors = input_constructors
-        cls._outputs_constructors = output_constructors
+        cls._input_constructors = input_constructors
+        cls._output_constructors = output_constructors
 
     @classmethod
     def params(cls):
@@ -55,11 +49,11 @@ class UFDLJobContract(ABC):
 
     @classmethod
     def input_constructors(cls):
-        return cls._inputs_constructors
+        return cls._input_constructors
 
     @classmethod
     def output_constructors(cls):
-        return cls._outputs_constructors
+        return cls._output_constructors
 
     @classmethod
     def contract_class_name(cls) -> str:
@@ -77,19 +71,13 @@ class UFDLJobContract(ABC):
             types: Dict[str, UFDLType]
     ):
         # Make sure types really is a dict
-        if not isinstance(types, dict):
-            raise ValueError(f"Contract {self.format()} not initialised by dict: ({type(types)}) {types}")
+        expect(dict, types)
 
         # Make sure all parameters are specified and are types
         for param_name in self._params.names():
             if param_name not in types:
                 raise ValueError(f"Contract {self.format()} missing type-argument \"{param_name}\"")
-            param_type = types[param_name]
-            if not isinstance(param_type, UFDLType):
-                raise ValueError(
-                    f"Contract {self.format()} received non-type argument for parameter \"{param_name}\": "
-                    f"({type(param_type)}) {param_type}"
-                )
+            expect(UFDLType, types[param_name])
 
         # Make sure only the parameters are specified
         for name in types:
@@ -102,33 +90,15 @@ class UFDLJobContract(ABC):
             for param_name, param_type in types.items()
         })
 
-        inputs: Dict[str, Input[UFDLType]] = {
-            input_name: Input(
-                *(
-                    input_constructor.construct(types) if isinstance(input_constructor, TypeConstructor)
-                    else input_constructor
-                    for input_constructor in input_constructors.types
-                ),
-                help=input_constructors.help
-            )
-            for input_name, input_constructors in self._inputs_constructors.items()
+        inputs: Dict[str, Input] = {
+            input_name: input_constructor.construct(types)
+            for input_name, input_constructor in self._input_constructors.items()
         }
 
-        outputs: Dict[str, Output[UFDLType]] = {
-            output_name: Output(
-                (
-                    output_constructor.type.construct(types) if isinstance(output_constructor.type, TypeConstructor)
-                    else output_constructor.type
-                ),
-                help=output_constructor.help
-            )
-            for output_name, output_constructor in self._outputs_constructors.items()
+        outputs: Dict[str, Output] = {
+            output_name: output_constructor.construct(types)
+            for output_name, output_constructor in self._output_constructors.items()
         }
-
-        for input_name, input in inputs.items():
-            input._name = input_name
-        for output_name, output in outputs.items():
-            output._name = output_name
 
         self._inputs = inputs
         self._outputs = outputs

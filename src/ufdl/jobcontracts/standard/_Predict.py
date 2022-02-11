@@ -1,7 +1,10 @@
+from typing import IO, Union
+
 from ufdl.jobtypes.standard import JobOutput, Model, PK, Name
 from ufdl.jobtypes.standard.server import Dataset, Domain, Framework
+from wai.json.raw import RawJSONObject
 
-from ..base import UFDLJobContract, Input, Output
+from ..base import Input, Output, UFDLJobContract, InputConstructor, OutputConstructor
 from ..params import JobContractParams, TypeConstructor
 
 # Type parameters
@@ -29,31 +32,39 @@ class Predict(
     UFDLJobContract,
     params=predict_params,
     inputs={
-        "model": Input(
+        "model": InputConstructor(
             model_type_constructor,
             help="The model to use to generate predictions"
         ),
-        "dataset": Input(
+        "dataset": InputConstructor(
             dataset_pk_type_constructor,
             dataset_name_type_constructor,
             help="The dataset to generate predictions for"
         )
     },
     outputs={
-        "predictions": Output(
+        "predictions": OutputConstructor(
             dataset_pk_type_constructor,
             help="The dataset containing the predictions"
         )
     }
 ):
     @property
-    def model(self):
+    def domain_type(self) -> Domain:
+        return self.types[DomainType]
+
+    @property
+    def framework_type(self) -> Framework:
+        return self.types[FrameworkType]
+
+    @property
+    def model(self) -> Input[Union[bytes, IO[bytes]]]:
         return self.inputs['model']
 
     @property
-    def dataset(self):
+    def dataset(self) -> Input[RawJSONObject]:
         return self.inputs['dataset']
 
     @property
-    def predictions(self):
+    def predictions(self) -> Output[int]:
         return self.outputs['predictions']
