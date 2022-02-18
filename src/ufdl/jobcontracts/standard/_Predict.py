@@ -1,8 +1,7 @@
 from typing import IO, Union
 
 from ufdl.jobtypes.standard import JobOutput, Model, PK, Name
-from ufdl.jobtypes.standard.server import Dataset, Domain, Framework
-from wai.json.raw import RawJSONObject
+from ufdl.jobtypes.standard.server import Dataset, Domain, Framework, DatasetInstance
 
 from ..base import Input, Output, UFDLJobContract, InputConstructor, OutputConstructor
 from ..params import JobContractParams, TypeConstructor
@@ -62,7 +61,7 @@ class Predict(
         return self.inputs['model']
 
     @property
-    def dataset(self) -> Input[RawJSONObject]:
+    def dataset(self) -> Input[DatasetInstance]:
         return self.inputs['dataset']
 
     @property

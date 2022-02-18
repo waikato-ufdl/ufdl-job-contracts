@@ -1,8 +1,7 @@
 from typing import IO, Union
 
 from ufdl.jobtypes.standard import Model, PK, Name
-from ufdl.jobtypes.standard.server import Dataset, Domain, Framework
-from wai.json.raw import RawJSONObject
+from ufdl.jobtypes.standard.server import Dataset, Domain, Framework, DatasetInstance
 
 from ..base import UFDLJobContract, Input, Output, InputConstructor, OutputConstructor
 from ..params import JobContractParams, TypeConstructor
@@ -54,7 +53,7 @@ class Train(
         return self.types[FrameworkType]
 
     @property
-    def dataset(self) -> Input[RawJSONObject]:
+    def dataset(self) -> Input[DatasetInstance]:
         return self.inputs['dataset']
 
     @property
